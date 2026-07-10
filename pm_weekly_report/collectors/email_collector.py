@@ -87,23 +87,34 @@ def classify_email(subject: str, body: str) -> EmailCategory:
     return EmailCategory.OTHER
 
 
-def _matches_filters(sender: str, subject: str, filters: dict) -> bool:
+def _matches_filters(sender: str, subject: str, body: str, filters: dict) -> bool:
     exclude = filters.get("exclude_subject", [])
-    if any(k.lower() in subject.lower() for k in exclude):
+    text = f"{subject} {body}"
+    if any(k.lower() in text.lower() for k in exclude):
         return False
+
+    if filters.get("include_all", False):
+        return True
 
     domains = filters.get("domains", [])
     keywords = filters.get("subject_keywords", [])
+    match_body = filters.get("match_body", True)
+
     if not domains and not keywords:
         return True
 
     sender_lower = sender.lower()
     subject_lower = subject.lower()
+    body_lower = body.lower()
+
     if domains and any(d.lower() in sender_lower for d in domains):
         return True
-    if keywords and any(k.lower() in subject_lower for k in keywords):
-        return True
-    return not domains and not keywords
+    if keywords:
+        for k in keywords:
+            kw = k.lower()
+            if kw in subject_lower or (match_body and kw in body_lower):
+                return True
+    return False
 
 
 def fetch_emails(config: dict, week_start: datetime, week_end: datetime) -> list[EmailItem]:
@@ -118,6 +129,7 @@ def fetch_emails(config: dict, week_start: datetime, week_end: datetime) -> list
     use_ssl = bool(email_cfg.get("use_ssl", True))
     mailbox = email_cfg.get("mailbox", "INBOX")
     filters = email_cfg.get("filters", {})
+    max_emails = int(email_cfg.get("max_emails", 50))
 
     if use_ssl:
         client = imaplib.IMAP4_SSL(host, port)
@@ -151,7 +163,7 @@ def fetch_emails(config: dict, week_start: datetime, week_end: datetime) -> list
             try:
                 msg_date = parsedate_to_datetime(date_header) if date_header else datetime.now()
                 if msg_date.tzinfo:
-                    msg_date = msg_date.replace(tzinfo=None)
+                    msg_date = msg_date.astimezone().replace(tzinfo=None)
             except (TypeError, ValueError):
                 msg_date = datetime.now()
 
@@ -171,7 +183,7 @@ def fetch_emails(config: dict, week_start: datetime, week_end: datetime) -> list
                     body_parts.append(payload.decode(errors="replace"))
 
             body = "\n".join(body_parts)[:500]
-            if not _matches_filters(sender, subject, filters):
+            if not _matches_filters(sender, subject, body, filters):
                 continue
 
             snippet = body.strip().replace("\n", " ")[:160]
@@ -191,7 +203,7 @@ def fetch_emails(config: dict, week_start: datetime, week_end: datetime) -> list
             )
 
         items.sort(key=lambda x: x.date, reverse=True)
-        return dedupe_emails(items)
+        return dedupe_emails(items)[:max_emails]
     finally:
         try:
             client.logout()

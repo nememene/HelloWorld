@@ -14,10 +14,13 @@ email:
   username: ${EMAIL_USER}
   password: ${EMAIL_PASSWORD}
   mailbox: INBOX
+  max_emails: 50
   filters:
+    include_all: true
+    match_body: true
     domains: []
-    subject_keywords: ["需求", "bug", "上线", "合同", "反馈", "风险", "审批", "确认"]
-    exclude_subject: ["订阅", "广告", "unsubscribe"]
+    subject_keywords: ["需求", "bug", "上线", "合同", "反馈", "风险", "审批", "确认", "项目", "会议"]
+    exclude_subject: ["订阅", "广告", "unsubscribe", "newsletter"]
 
 im:
   enabled: true

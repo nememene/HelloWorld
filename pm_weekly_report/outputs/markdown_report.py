@@ -30,7 +30,7 @@ def render_markdown(data: WeeklyReportData, product_line_name: str) -> str:
         for item in data.emails:
             lines.append(_format_email_line(item))
     else:
-        lines.append("- 本周无匹配邮件，或邮箱采集未启用。")
+        lines.append("- 本周无匹配邮件。若邮箱已连通，请检查 config 中 `filters.include_all` 是否为 true。")
 
     lines.extend(["", "## 二、群消息：需求与风险", "", "### 需求", ""])
     if data.requirements:

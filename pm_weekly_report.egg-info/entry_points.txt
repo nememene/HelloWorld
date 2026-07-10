@@ -1,0 +1,2 @@
+[console_scripts]
+pm-weekly-report = pm_weekly_report.__main__:main
