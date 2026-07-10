@@ -7,6 +7,13 @@ cd "$ROOT"
 
 echo "==> 项目目录: $ROOT"
 
+if [[ ! -d pm_weekly_report ]]; then
+  echo "错误: 缺少 pm_weekly_report 目录，请执行:"
+  echo "  git pull origin cursor/pm-weekly-report-c105"
+  echo "  git checkout cursor/pm-weekly-report-c105"
+  exit 1
+fi
+
 if [[ ! -f config.o-netcom.yaml ]]; then
   echo "错误: 未找到 config.o-netcom.yaml，请先执行:"
   echo "  git checkout cursor/pm-weekly-report-c105"
@@ -31,13 +38,13 @@ if [[ -z "${EMAIL_PASSWORD:-}" ]]; then
 fi
 
 echo "==> 测试邮箱连接 mail3.o-netcom.com:5000 ..."
-PYTHONPATH="$ROOT" python scripts/test_email.py -c config.o-netcom.yaml
+python scripts/test_email.py -c config.o-netcom.yaml
 
 echo ""
 echo "==> 生成周报预览..."
-PYTHONPATH="$ROOT" python -m pm_weekly_report -c config.o-netcom.yaml --dry-run
+python -m pm_weekly_report -c config.o-netcom.yaml --dry-run
 
 echo ""
 echo "==> 写入周报文件..."
-PYTHONPATH="$ROOT" python -m pm_weekly_report -c config.o-netcom.yaml
+python -m pm_weekly_report -c config.o-netcom.yaml
 echo "完成！请查看 reports/ 目录"

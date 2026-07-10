@@ -7,8 +7,19 @@ import argparse
 import imaplib
 import os
 import sys
+from pathlib import Path
+
+# 确保从 scripts/ 直接运行时能找到项目包（Windows Git Bash 无需 PYTHONPATH）
+_ROOT = Path(__file__).resolve().parents[1]
+if str(_ROOT) not in sys.path:
+    sys.path.insert(0, str(_ROOT))
 
 from dotenv import load_dotenv
+
+if not (_ROOT / "pm_weekly_report").is_dir():
+    print(f"错误：未找到 pm_weekly_report 目录（当前项目: {_ROOT}）")
+    print("请执行: git pull && git checkout cursor/pm-weekly-report-c105")
+    sys.exit(1)
 
 from pm_weekly_report.config import load_config
 
