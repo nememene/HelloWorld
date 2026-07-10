@@ -2,12 +2,53 @@ from __future__ import annotations
 
 import email
 import imaplib
+import json
 import re
 from datetime import datetime, timedelta
 from email.header import decode_header
 from email.utils import parsedate_to_datetime
+from pathlib import Path
 
 from pm_weekly_report.models import EmailCategory, EmailItem
+
+
+def dedupe_emails(items: list[EmailItem]) -> list[EmailItem]:
+    seen: set[str] = set()
+    unique: list[EmailItem] = []
+    for item in items:
+        key = item.message_id or f"{item.subject}|{item.sender}|{item.date.isoformat()}"
+        if key in seen:
+            continue
+        seen.add(key)
+        unique.append(item)
+    return unique
+
+
+def load_sample_emails(path: str, week_start: datetime, week_end: datetime) -> list[EmailItem]:
+    file_path = Path(path)
+    if not file_path.exists():
+        return []
+
+    with file_path.open(encoding="utf-8") as f:
+        raw = json.load(f)
+
+    items: list[EmailItem] = []
+    for row in raw:
+        msg_date = datetime.strptime(row["date"], "%Y-%m-%d %H:%M:%S")
+        if msg_date < week_start or msg_date > week_end:
+            continue
+        items.append(
+            EmailItem(
+                subject=row["subject"],
+                sender=row["sender"],
+                date=msg_date,
+                snippet=row.get("snippet", ""),
+                category=EmailCategory(row.get("category", "其他")),
+                product=row.get("product", ""),
+                message_id=row.get("message_id", ""),
+            )
+        )
+    return dedupe_emails(items)
 
 
 def _decode_mime_header(value: str | None) -> str:
@@ -46,11 +87,7 @@ def classify_email(subject: str, body: str) -> EmailCategory:
     return EmailCategory.OTHER
 
 
-def _matches_filters(
-    sender: str,
-    subject: str,
-    filters: dict,
-) -> bool:
+def _matches_filters(sender: str, subject: str, filters: dict) -> bool:
     exclude = filters.get("exclude_subject", [])
     if any(k.lower() in subject.lower() for k in exclude):
         return False
@@ -71,9 +108,6 @@ def _matches_filters(
 
 def fetch_emails(config: dict, week_start: datetime, week_end: datetime) -> list[EmailItem]:
     email_cfg = config.get("email", {})
-    if not email_cfg.get("enabled"):
-        return []
-
     username = email_cfg.get("username") or ""
     password = email_cfg.get("password") or ""
     if not username or not password:
@@ -157,9 +191,24 @@ def fetch_emails(config: dict, week_start: datetime, week_end: datetime) -> list
             )
 
         items.sort(key=lambda x: x.date, reverse=True)
-        return items
+        return dedupe_emails(items)
     finally:
         try:
             client.logout()
         except Exception:
             pass
+
+
+def collect_emails(config: dict, week_start: datetime, week_end: datetime) -> list[EmailItem]:
+    email_cfg = config.get("email", {})
+    sample_file = email_cfg.get("sample_file", "data/sample_emails.json")
+    use_sample = email_cfg.get("use_sample_when_disabled", True)
+
+    if email_cfg.get("enabled"):
+        emails = fetch_emails(config, week_start, week_end)
+        if emails:
+            return emails
+
+    if use_sample:
+        return load_sample_emails(sample_file, week_start, week_end)
+    return []

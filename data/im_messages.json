@@ -14,6 +14,13 @@
     "timestamp": "2026-07-09 10:15:00"
   },
   {
+    "platform": "wecom",
+    "group": "产品线管理群",
+    "sender": "总监-老陈",
+    "content": "#决策 [产品A] Q3 主推权限重构，多租户功能暂缓到 Q4",
+    "timestamp": "2026-07-09 15:30:00"
+  },
+  {
     "platform": "dingtalk",
     "group": "产品线管理群",
     "sender": "你",

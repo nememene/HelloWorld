@@ -16,12 +16,23 @@ INLINE_TODO_PATTERN = re.compile(
 )
 
 
-def get_week_range(reference: datetime | None = None) -> tuple[datetime, datetime, str, str]:
-    ref = reference or datetime.now()
-    week_start = (ref - timedelta(days=ref.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+def get_week_range(
+    reference: datetime | None = None,
+    iso_week: int | None = None,
+    iso_year: int | None = None,
+) -> tuple[datetime, datetime, str, str]:
+    if iso_week is not None:
+        year = iso_year or datetime.now().year
+        week_start = datetime.fromisocalendar(year, iso_week, 1)
+    else:
+        ref = reference or datetime.now()
+        week_start = (ref - timedelta(days=ref.weekday())).replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+
     week_end = (week_start + timedelta(days=6)).replace(hour=23, minute=59, second=59, microsecond=0)
-    iso_year, iso_week, _ = week_start.isocalendar()
-    week_label = f"{iso_year} 第 {iso_week} 周"
+    cal_year, cal_week, _ = week_start.isocalendar()
+    week_label = f"{cal_year} 第 {cal_week} 周"
     date_range = f"{week_start.strftime('%Y-%m-%d')} ~ {week_end.strftime('%Y-%m-%d')}"
     return week_start, week_end, week_label, date_range
 

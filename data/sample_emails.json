@@ -1,0 +1,29 @@
+[
+  {
+    "message_id": "<sample-001@local>",
+    "subject": "[产品A] Re: 批量导出功能需求",
+    "sender": "sales@customer.com",
+    "date": "2026-07-08 11:20:00",
+    "snippet": "客户希望在月底前支持 Excel 批量导出，否则可能影响 Q3 签约。",
+    "category": "需求反馈",
+    "product": "产品A"
+  },
+  {
+    "message_id": "<sample-002@local>",
+    "subject": "[产品B] 第三方 API 延期通知",
+    "sender": "vendor@partner.com",
+    "date": "2026-07-09 09:45:00",
+    "snippet": "短信 API 集成预计推迟到 7/25，请评估对上线计划的影响。",
+    "category": "风险",
+    "product": "产品B"
+  },
+  {
+    "message_id": "<sample-003@local>",
+    "subject": "请确认：产品C 热修复发布窗口",
+    "sender": "devops@company.com",
+    "date": "2026-07-10 08:30:00",
+    "snippet": "请确认本周五 18:00 是否可以安排产品C 登录超时热修复发布。",
+    "category": "待决策",
+    "product": "产品C"
+  }
+]

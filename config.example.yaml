@@ -4,11 +4,13 @@ report:
 
 email:
   enabled: false
-  imap_host: imap.example.com
+  use_sample_when_disabled: true
+  sample_file: data/sample_emails.json
+  imap_host: imap.exmail.qq.com
   imap_port: 993
   use_ssl: true
-  username: ""
-  password: ""
+  username: ${EMAIL_USER}
+  password: ${EMAIL_PASSWORD}
   mailbox: INBOX
   since_days: 7
   filters:
@@ -26,10 +28,11 @@ progress:
   jira:
     enabled: false
     base_url: https://jira.example.com
-    email: ""
-    api_token: ""
+    email: ${JIRA_EMAIL}
+    api_token: ${JIRA_API_TOKEN}
     project_keys: []
 
 notify:
   enabled: false
-  wecom_webhook: ""
+  wecom_webhook: ${WECOM_WEBHOOK}
+  dingtalk_webhook: ${DINGTALK_WEBHOOK}

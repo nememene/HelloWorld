@@ -46,6 +46,13 @@ def render_markdown(data: WeeklyReportData, product_line_name: str) -> str:
     else:
         lines.append("- 本周暂无 `#风险` 标签或自动识别的风险消息。")
 
+    lines.extend(["", "### 决策", ""])
+    if data.decisions:
+        for msg in data.decisions:
+            lines.append(_format_im_line(msg))
+    else:
+        lines.append("- 本周暂无 `#决策` 标签或自动识别的决策消息。")
+
     if data.other_im_messages:
         lines.extend(["", "### 其他群消息", ""])
         for msg in data.other_im_messages[:10]:

@@ -90,9 +90,12 @@ def load_im_messages(
     return messages
 
 
-def split_im_messages(messages: list[IMMessage]) -> tuple[list[IMMessage], list[IMMessage], list[IMMessage]]:
+def split_im_messages(
+    messages: list[IMMessage],
+) -> tuple[list[IMMessage], list[IMMessage], list[IMMessage], list[IMMessage]]:
     requirements: list[IMMessage] = []
     risks: list[IMMessage] = []
+    decisions: list[IMMessage] = []
     others: list[IMMessage] = []
 
     for msg in messages:
@@ -100,7 +103,9 @@ def split_im_messages(messages: list[IMMessage]) -> tuple[list[IMMessage], list[
             requirements.append(msg)
         elif msg.tag == IMTag.RISK:
             risks.append(msg)
+        elif msg.tag == IMTag.DECISION:
+            decisions.append(msg)
         else:
             others.append(msg)
 
-    return requirements, risks, others
+    return requirements, risks, decisions, others

@@ -1,32 +1,35 @@
 from __future__ import annotations
 
 import argparse
-import json
 from datetime import datetime
 from pathlib import Path
 
-import requests
-
-from pm_weekly_report.collectors.email_collector import fetch_emails
+from pm_weekly_report.collectors.email_collector import collect_emails
 from pm_weekly_report.collectors.im_collector import load_im_messages, split_im_messages
 from pm_weekly_report.collectors.progress_collector import fetch_jira_progress, load_progress_csv
 from pm_weekly_report.config import load_config
 from pm_weekly_report.models import WeeklyReportData
 from pm_weekly_report.outputs.markdown_report import render_markdown
+from pm_weekly_report.outputs.notify import notify_dingtalk, notify_wecom
 from pm_weekly_report.processors.action_extractor import extract_action_items, get_week_range
 
 
-def build_report(config: dict, reference: datetime | None = None) -> WeeklyReportData:
-    week_start, week_end, week_label, date_range = get_week_range(reference)
+def build_report(
+    config: dict,
+    reference: datetime | None = None,
+    iso_week: int | None = None,
+    iso_year: int | None = None,
+) -> WeeklyReportData:
+    week_start, week_end, week_label, date_range = get_week_range(reference, iso_week, iso_year)
 
-    emails = fetch_emails(config, week_start, week_end)
+    emails = collect_emails(config, week_start, week_end)
 
     im_messages: list = []
     if config.get("im", {}).get("enabled", True):
         im_file = config.get("im", {}).get("messages_file", "data/im_messages.json")
         im_messages = load_im_messages(im_file, week_start, week_end)
 
-    requirements, risks, others = split_im_messages(im_messages)
+    requirements, risks, decisions, others = split_im_messages(im_messages)
 
     progress = []
     if config.get("progress", {}).get("enabled", True):
@@ -43,6 +46,7 @@ def build_report(config: dict, reference: datetime | None = None) -> WeeklyRepor
         emails=emails,
         requirements=requirements,
         risks=risks,
+        decisions=decisions,
         other_im_messages=others,
         progress=progress,
         action_items=action_items,
@@ -59,29 +63,20 @@ def save_report(markdown: str, output_dir: str, reference: datetime | None = Non
     return path
 
 
-def notify_wecom(webhook: str, markdown: str) -> None:
-    if not webhook:
-        return
-    summary = "\n".join(markdown.splitlines()[:20])
-    payload = {
-        "msgtype": "markdown",
-        "markdown": {"content": summary + "\n\n> 完整周报已生成，请查看本地 reports 目录。"},
-    }
-    requests.post(webhook, json=payload, timeout=15)
-
-
 def main() -> None:
     parser = argparse.ArgumentParser(description="产品线周报生成器（邮箱 + 企微/钉钉 + 产品进展）")
     parser.add_argument("-c", "--config", default="config.yaml", help="配置文件路径")
     parser.add_argument("--dry-run", action="store_true", help="仅打印 Markdown，不写文件")
     parser.add_argument("--date", help="指定参考日期 YYYY-MM-DD，默认今天")
-    parser.add_argument("--notify", action="store_true", help="生成后推送企微摘要")
+    parser.add_argument("--week", type=int, help="指定 ISO 周次，例如 28")
+    parser.add_argument("--year", type=int, help="配合 --week 指定年份，默认今年")
+    parser.add_argument("--notify", action="store_true", help="生成后推送企微/钉钉摘要")
     args = parser.parse_args()
 
     config = load_config(args.config)
     reference = datetime.strptime(args.date, "%Y-%m-%d") if args.date else None
 
-    data = build_report(config, reference)
+    data = build_report(config, reference=reference, iso_week=args.week, iso_year=args.year)
     product_line = config.get("report", {}).get("product_line_name", "产品线")
     markdown = render_markdown(data, product_line)
 
@@ -95,7 +90,12 @@ def main() -> None:
 
     notify_cfg = config.get("notify", {})
     if args.notify or notify_cfg.get("enabled"):
-        notify_wecom(notify_cfg.get("wecom_webhook", ""), markdown)
+        wecom_ok = notify_wecom(notify_cfg.get("wecom_webhook", ""), markdown)
+        dingtalk_ok = notify_dingtalk(notify_cfg.get("dingtalk_webhook", ""), markdown)
+        if wecom_ok:
+            print("已推送企业微信摘要")
+        if dingtalk_ok:
+            print("已推送钉钉摘要")
 
 
 if __name__ == "__main__":

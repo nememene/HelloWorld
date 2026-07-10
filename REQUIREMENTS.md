@@ -119,8 +119,8 @@ notify:
 
 ## 7. 验收标准
 
-- [ ] `python -m pm_weekly_report` 可生成周报 Markdown
-- [ ] 无邮箱配置时，可用 sample 数据跑通
-- [ ] 群消息 `#需求` / `#风险` 正确分栏
-- [ ] 产品进展表正确渲染为 Markdown 表格
-- [ ] 输出可直接粘贴到邮件 / 企微 / 钉钉
+- [x] `python -m pm_weekly_report` 可生成周报 Markdown
+- [x] 无邮箱配置时，可用 sample 数据跑通
+- [x] 群消息 `#需求` / `#风险` 正确分栏
+- [x] 产品进展表正确渲染为 Markdown 表格
+- [x] 输出可直接粘贴到邮件 / 企微 / 钉钉

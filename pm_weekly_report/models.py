@@ -68,6 +68,7 @@ class WeeklyReportData:
     emails: list[EmailItem] = field(default_factory=list)
     requirements: list[IMMessage] = field(default_factory=list)
     risks: list[IMMessage] = field(default_factory=list)
+    decisions: list[IMMessage] = field(default_factory=list)
     other_im_messages: list[IMMessage] = field(default_factory=list)
     progress: list[ProductProgress] = field(default_factory=list)
     action_items: list[ActionItem] = field(default_factory=list)
