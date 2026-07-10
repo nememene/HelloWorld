@@ -22,6 +22,7 @@ fi
 
 echo "==> 安装 Python 依赖..."
 python -m pip install -r requirements.txt -q
+python -m pip install -e . -q
 
 if [[ ! -f .env ]]; then
   cp .env.o-netcom.example .env
@@ -42,9 +43,9 @@ python scripts/test_email.py -c config.o-netcom.yaml
 
 echo ""
 echo "==> 生成周报预览..."
-python -m pm_weekly_report -c config.o-netcom.yaml --dry-run
+python generate_report.py -c config.o-netcom.yaml --dry-run
 
 echo ""
 echo "==> 写入周报文件..."
-python -m pm_weekly_report -c config.o-netcom.yaml
+python generate_report.py -c config.o-netcom.yaml
 echo "完成！请查看 reports/ 目录"
