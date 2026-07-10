@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pm-weekly-report"
+version = "1.0.0"
+description = "产品线周报生成器"
+requires-python = ">=3.10"
+dependencies = [
+  "PyYAML>=6.0",
+  "python-dotenv>=1.0.0",
+  "requests>=2.31.0",
+]
+
+[project.scripts]
+pm-weekly-report = "pm_weekly_report.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["pm_weekly_report*"]

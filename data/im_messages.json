@@ -1,0 +1,37 @@
+[
+  {
+    "platform": "wecom",
+    "group": "产品A群",
+    "sender": "销售-小王",
+    "content": "#需求 [产品A] 客户XX希望支持批量导出 Excel，影响 Q3 签约",
+    "timestamp": "2026-07-08 14:30:00"
+  },
+  {
+    "platform": "wecom",
+    "group": "产品B群",
+    "sender": "研发-小李",
+    "content": "#风险 [产品B] 第三方短信 API 延期，可能影响 7/20 上线",
+    "timestamp": "2026-07-09 10:15:00"
+  },
+  {
+    "platform": "wecom",
+    "group": "产品线管理群",
+    "sender": "总监-老陈",
+    "content": "#决策 [产品A] Q3 主推权限重构，多租户功能暂缓到 Q4",
+    "timestamp": "2026-07-09 15:30:00"
+  },
+  {
+    "platform": "dingtalk",
+    "group": "产品线管理群",
+    "sender": "你",
+    "content": "#待办 更新定价页文案 @小王 2026-07-15",
+    "timestamp": "2026-07-10 09:00:00"
+  },
+  {
+    "platform": "wecom",
+    "group": "产品C群",
+    "sender": "客服-小张",
+    "content": "[产品C] 本周收到 3 起登录超时投诉，需排查",
+    "timestamp": "2026-07-07 16:45:00"
+  }
+]
