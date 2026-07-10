@@ -28,8 +28,12 @@ def main() -> None:
     username = email_cfg.get("username") or os.getenv("EMAIL_USER", "")
     password = email_cfg.get("password") or os.getenv("EMAIL_PASSWORD", "")
 
-    if not username or not password:
-        print("错误：请在 .env 中设置 EMAIL_USER 和 EMAIL_PASSWORD")
+    if not username:
+        print("错误：请在 .env 中设置 EMAIL_USER=zhengwei@o-netcom.com")
+        sys.exit(1)
+    if not password:
+        print("错误：请在 .env 中设置 EMAIL_PASSWORD（Foxmail 登录密码）")
+        print("提示：复制 .env.o-netcom.example 为 .env 后编辑")
         sys.exit(1)
 
     print(f"连接 {host}:{port} (SSL={use_ssl}) ...")
