@@ -1,0 +1,35 @@
+report:
+  product_line_name: "核心产品线"
+  output_dir: reports
+
+email:
+  enabled: false
+  imap_host: imap.example.com
+  imap_port: 993
+  use_ssl: true
+  username: ""
+  password: ""
+  mailbox: INBOX
+  since_days: 7
+  filters:
+    domains: []
+    subject_keywords: ["需求", "bug", "上线", "合同", "反馈", "风险"]
+    exclude_subject: ["订阅", "广告", "unsubscribe"]
+
+im:
+  enabled: true
+  messages_file: data/im_messages.json
+
+progress:
+  enabled: true
+  csv_file: data/product_progress.csv
+  jira:
+    enabled: false
+    base_url: https://jira.example.com
+    email: ""
+    api_token: ""
+    project_keys: []
+
+notify:
+  enabled: false
+  wecom_webhook: ""
