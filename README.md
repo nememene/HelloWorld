@@ -62,6 +62,30 @@ python3 -m pm_weekly_report.webhook_server --port 8787
 0 17 * * 5 cd /path/to/project && ./scripts/run_weekly.sh --notify
 ```
 
+## 昂纳科技邮箱（o-netcom.com）
+
+Foxmail 是客户端，实际邮箱域名为 `@o-netcom.com`。已提供专用配置：
+
+```bash
+cp .env.o-netcom.example .env
+# 编辑 .env，填入 EMAIL_PASSWORD（邮箱登录密码）
+
+# 测试连接（需在公司内网或 VPN）
+python3 scripts/test_email.py -c config.o-netcom.yaml
+
+# 生成周报
+python3 -m pm_weekly_report -c config.o-netcom.yaml --dry-run
+python3 -m pm_weekly_report -c config.o-netcom.yaml
+```
+
+| 项目 | 值 |
+|------|-----|
+| 收件服务器 | `mail3.o-netcom.com` |
+| IMAP 端口 | `5000` |
+| SSL | 关闭 |
+| 用户名 | `zhengwei@o-netcom.com` |
+| 密码 | 邮箱登录密码（与 Foxmail 相同） |
+
 ## 测试
 
 ```bash

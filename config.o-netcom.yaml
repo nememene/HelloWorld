@@ -1,0 +1,33 @@
+# 昂纳科技 o-netcom.com 企业邮箱专用配置
+# 与 Foxmail 手机端设置一致：mail3.o-netcom.com，IMAP 5000，无 SSL
+
+report:
+  product_line_name: "核心产品线"
+  output_dir: reports
+
+email:
+  enabled: true
+  use_sample_when_disabled: false
+  imap_host: mail3.o-netcom.com
+  imap_port: 5000
+  use_ssl: false
+  username: ${EMAIL_USER}
+  password: ${EMAIL_PASSWORD}
+  mailbox: INBOX
+  filters:
+    domains: []
+    subject_keywords: ["需求", "bug", "上线", "合同", "反馈", "风险", "审批", "确认"]
+    exclude_subject: ["订阅", "广告", "unsubscribe"]
+
+im:
+  enabled: true
+  messages_file: data/im_messages.json
+
+progress:
+  enabled: true
+  csv_file: data/product_progress.csv
+
+notify:
+  enabled: false
+  wecom_webhook: ${WECOM_WEBHOOK}
+  dingtalk_webhook: ${DINGTALK_WEBHOOK}
