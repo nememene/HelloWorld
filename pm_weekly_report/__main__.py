@@ -19,10 +19,11 @@ def build_report(
     reference: datetime | None = None,
     iso_week: int | None = None,
     iso_year: int | None = None,
+    verbose: bool = False,
 ) -> WeeklyReportData:
     week_start, week_end, week_label, date_range = get_week_range(reference, iso_week, iso_year)
 
-    emails = collect_emails(config, week_start, week_end)
+    emails = collect_emails(config, week_start, week_end, verbose=verbose)
 
     im_messages: list = []
     if config.get("im", {}).get("enabled", True):
@@ -71,12 +72,13 @@ def main() -> None:
     parser.add_argument("--week", type=int, help="指定 ISO 周次，例如 28")
     parser.add_argument("--year", type=int, help="配合 --week 指定年份，默认今年")
     parser.add_argument("--notify", action="store_true", help="生成后推送企微/钉钉摘要")
+    parser.add_argument("-v", "--verbose", action="store_true", help="显示邮件拉取诊断信息")
     args = parser.parse_args()
 
     config = load_config(args.config)
     reference = datetime.strptime(args.date, "%Y-%m-%d") if args.date else None
 
-    data = build_report(config, reference=reference, iso_week=args.week, iso_year=args.year)
+    data = build_report(config, reference=reference, iso_week=args.week, iso_year=args.year, verbose=args.verbose)
     product_line = config.get("report", {}).get("product_line_name", "产品线")
     markdown = render_markdown(data, product_line)
 
