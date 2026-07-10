@@ -145,7 +145,7 @@ def _extract_body(msg: email.message.Message) -> str:
 
 def _search_message_ids(client: imaplib.IMAP4, email_cfg: dict, week_start: datetime) -> list[bytes]:
     fetch_mode = email_cfg.get("fetch_mode", "recent")
-    scan_limit = int(email_cfg.get("scan_limit", 300))
+    scan_limit = int(email_cfg.get("scan_limit", 100))
 
     if fetch_mode == "since":
         since = (week_start - timedelta(days=1)).strftime("%d-%b-%Y")
@@ -164,15 +164,47 @@ def _search_message_ids(client: imaplib.IMAP4, email_cfg: dict, week_start: date
     return ids
 
 
-def _parse_message(raw: bytes, num: bytes, week_start: datetime, week_end: datetime, filters: dict) -> EmailItem | None:
+def _fetch_header(client: imaplib.IMAP4, num: bytes) -> email.message.Message | None:
+    status, msg_data = client.fetch(
+        num, "(BODY.PEEK[HEADER.FIELDS (DATE FROM SUBJECT MESSAGE-ID)])"
+    )
+    if status != "OK" or not msg_data or not msg_data[0]:
+        return None
+    raw = msg_data[0][1]
+    if not isinstance(raw, bytes):
+        return None
+    return email.message_from_bytes(raw)
+
+
+def _filter_ids_in_week(
+    client: imaplib.IMAP4,
+    ids: list[bytes],
+    week_start: datetime,
+    week_end: datetime,
+    verbose: bool = False,
+) -> list[bytes]:
+    matched: list[bytes] = []
+    total = len(ids)
+    for idx, num in enumerate(ids, start=1):
+        if verbose and idx % 20 == 0:
+            print(f"[email] 正在扫描邮件头 {idx}/{total}...", flush=True)
+        header = _fetch_header(client, num)
+        if header is None:
+            continue
+        msg_date = _parse_msg_date(header.get("Date"))
+        if week_start <= msg_date <= week_end:
+            matched.append(num)
+    if verbose:
+        print(f"[email] 本周候选邮件: {len(matched)} 封，开始下载正文...", flush=True)
+    return matched
+
+
+def _parse_message(raw: bytes, num: bytes, filters: dict) -> EmailItem | None:
     msg = email.message_from_bytes(raw)
     subject = _decode_mime_header(msg.get("Subject"))
     sender = _decode_mime_header(msg.get("From"))
     message_id = msg.get("Message-ID", f"local-{num.decode()}")
     msg_date = _parse_msg_date(msg.get("Date"))
-
-    if msg_date < week_start or msg_date > week_end:
-        return None
 
     body = _extract_body(msg)
     if not _matches_filters(sender, subject, body, filters):
@@ -221,11 +253,21 @@ def fetch_emails(
         client.select(mailbox)
         ids = _search_message_ids(client, email_cfg, week_start)
         if verbose:
-            print(f"[email] 扫描邮件 ID 数量: {len(ids)}，本周范围: {week_start.date()} ~ {week_end.date()}")
+            print(
+                f"[email] 扫描邮件 ID 数量: {len(ids)}，本周范围: {week_start.date()} ~ {week_end.date()}",
+                flush=True,
+            )
+
+        candidate_ids = _filter_ids_in_week(client, ids, week_start, week_end, verbose=verbose)
+        if not candidate_ids:
+            if verbose:
+                print("[email] 本周无邮件，结束", flush=True)
+            return []
 
         items: list[EmailItem] = []
-        in_week = 0
-        for num in ids:
+        for idx, num in enumerate(candidate_ids, start=1):
+            if verbose:
+                print(f"[email] 下载正文 {idx}/{len(candidate_ids)}...", flush=True)
             status, msg_data = client.fetch(num, "(RFC822)")
             if status != "OK" or not msg_data or not msg_data[0]:
                 continue
@@ -233,14 +275,14 @@ def fetch_emails(
             if not isinstance(raw, bytes):
                 continue
 
-            parsed = _parse_message(raw, num, week_start, week_end, filters)
-            if parsed is None:
-                continue
-            in_week += 1
-            items.append(parsed)
+            parsed = _parse_message(raw, num, filters)
+            if parsed is not None:
+                items.append(parsed)
+            if len(items) >= max_emails:
+                break
 
         if verbose:
-            print(f"[email] 本周匹配邮件: {in_week}，过滤后纳入周报: {len(items)}")
+            print(f"[email] 完成，纳入周报: {len(items)} 封", flush=True)
 
         items.sort(key=lambda x: x.date, reverse=True)
         return dedupe_emails(items)[:max_emails]

@@ -15,7 +15,7 @@ email:
   password: ${EMAIL_PASSWORD}
   mailbox: INBOX
   fetch_mode: recent
-  scan_limit: 300
+  scan_limit: 100
   max_emails: 50
   filters:
     include_all: true
