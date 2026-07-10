@@ -1,8 +1,0 @@
-Metadata-Version: 2.4
-Name: pm-weekly-report
-Version: 1.0.0
-Summary: 产品线周报生成器
-Requires-Python: >=3.10
-Requires-Dist: PyYAML>=6.0
-Requires-Dist: python-dotenv>=1.0.0
-Requires-Dist: requests>=2.31.0
